@@ -19,3 +19,19 @@ NOTE: Make sure you generate the binary in the same **operating system** it is g
 1. Now try running `python cli.py --help` to have a list of commands.
 
 > DEV NOTES: It will not work because the path to the generated files is pointing to inside the project at the moment.
+
+
+==========
+Create the following Directories in inputs directory: 
+Qaisars-Mac-mini:inputs qaisar$ l
+total 16
+drwxr-xr-x@  8 qaisar  staff   256B 30 Jul 00:32 .
+drwxr-xr-x@ 19 qaisar  staff   608B 30 Jul 20:15 ..
+-rw-r--r--@  1 qaisar  staff   6.0K 28 Jul 13:31 .DS_Store
+drwxr-xr-x@  4 qaisar  staff   128B 30 Jul 00:32 downloads
+drwxr-xr-x@  4 qaisar  staff   128B 30 Jul 00:28 infynity
+drwxr-xr-x@  3 qaisar  staff    96B 30 Jul 00:32 loankit
+drwxr-xr-x@  8 qaisar  staff   256B 30 Jul 00:16 referrer_list
+drwxr-xr-x@  4 qaisar  staff   128B 30 Jul 00:08 test_files
+
+Create Outputs directory

@@ -5,8 +5,8 @@ __pycache__/
 
 *.bak
 git_backup
-inputs
-Output
+inputs/*
+Output/*
 
 # C extensions
 *.so
