@@ -1,0 +1,6 @@
+beautifulsoup4
+click
+flake8
+xlsxwriter
+pandas
+xlrd
