@@ -26,6 +26,7 @@ class BrokerTaxInvoice(TaxInvoice):
         self.parse()
 
     def parse(self):
+        print(self.full_path)
         dataframe = pandas.read_excel(self.full_path)
 
         dataframe_info = dataframe.replace(numpy.nan, '', regex=True)

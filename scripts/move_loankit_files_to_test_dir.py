@@ -40,7 +40,6 @@ def move_files_to_dir(main_dir, group, process_id):
     print(f"""Main DIR: {main_dir}""")
     print(f"""Group ID: {group}""")
     print(f"""Process ID: {process_id}""")
-    pdb.set_trace()
     org_directory = main_dir + "/downloads/" + group 
     new_directory = main_dir + "/" + group + "/" + process_id
     _build_dir(new_directory)

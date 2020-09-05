@@ -1,0 +1,50 @@
+  478  history | grep scp
+  479  scp -r -P4422 qaisar@203.98.82.13:/var/www/mystro.com/data/commission_loankit/rcti/pre_processed/26196_Sat_Aug_22_2020 .
+  480  l
+  481  cd ../
+  482  l
+  483  vim ../
+  484  cd ../
+  485  l
+  486  vim run_move_files_from_dev08.sh
+  487  vim move_files_from_dev08.sh
+  488  vim run_move_files_from_dev08.sh
+  489  vim run_move_files_from_dev08.sh
+  490  ./run_move_files_from_dev08.sh
+  491  l
+  492  vim setup.py
+  493  cd ../
+  494  l
+  495  source menv/bin/activate
+  496  cd commission-comparer-infynity/
+  497  l
+  498  ./run_move_files_from_dev08.sh
+  499  l
+  500  cd inputs/
+  501  l
+  502  cd downloads/
+  503  l
+  504  cd loankit
+  505  l
+  506  cd tar_file/
+  507  l
+  508  cd ../
+  509  l
+  510  cd tar_file/
+  511  l
+  512  cd ../
+  513  pwd
+  514  mv ../../loankit/14991/* .
+  515  mv ../../loankit/14991/*.html .
+  516  mv ../../loankit/14991/*.xls .
+  517  mv ../../loankit/14991/*.txt .
+  518  l
+  519  ls -ltr *tgz
+  520  cd ../
+  521  l
+  522  mv loankit_20200822.tgz loankit/tar_file/
+  523  cd ../
+  524  l
+  525  cd ../
+  526  l
+  527  history
