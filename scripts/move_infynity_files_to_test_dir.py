@@ -45,11 +45,26 @@ def move_files_to_dir(pre_processing_dir, input_dir, run_date):
     new_directory = input_dir + "/" + run_date
     _build_dir(new_directory)
     print(f"""new directory: {new_directory}""")
-    copy_branch_files(pre_processing_dir, run_date, new_directory)
-    copy_broker_files(pre_processing_dir, run_date, new_directory)
-    copy_referrer_files(pre_processing_dir, run_date, new_directory)
-    copy_executive_summary_file(pre_processing_dir, run_date, new_directory)
-    copy_de_file(pre_processing_dir, run_date, new_directory)
+    try:
+    	copy_branch_files(pre_processing_dir, run_date, new_directory)
+    except:
+        pass
+    try:
+    	copy_broker_files(pre_processing_dir, run_date, new_directory)
+    except:
+        pass
+    try:
+    	copy_referrer_files(pre_processing_dir, run_date, new_directory)
+    except:
+        pass
+    try:
+    	copy_executive_summary_file(pre_processing_dir, run_date, new_directory)
+    except:
+        pass
+    try:
+    	copy_de_file(pre_processing_dir, run_date, new_directory)
+    except:
+        pass
 
 def copy_de_file(pre_processing_dir, run_date, new_dir):
     de_file_pre_processing_dir = f"""{pre_processing_dir}/{run_date}/de_file"""

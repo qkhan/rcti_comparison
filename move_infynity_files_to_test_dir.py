@@ -47,6 +47,7 @@ def move_files_to_dir(pre_processing_dir, input_dir, run_date):
     print(f"""new directory: {new_directory}""")
     copy_branch_files(pre_processing_dir, run_date, new_directory)
     copy_broker_files(pre_processing_dir, run_date, new_directory)
+    pdb.set_trace()
     copy_referrer_files(pre_processing_dir, run_date, new_directory)
     copy_executive_summary_file(pre_processing_dir, run_date, new_directory)
     copy_de_file(pre_processing_dir, run_date, new_directory)
