@@ -860,9 +860,9 @@ class BranchTaxInvoice(TaxInvoice):
     def _generate_key(self):
         sha = hashlib.sha256()
 
-        filename_parts = self.filename.split('_')
-        filename_parts = filename_parts[0:5]
-        filename_forkey = ''.join(filename_parts)
+        filename_parts = self.filename.split('Branch')
+        filename_parts = filename_parts[0].split("_")
+        filename_forkey = ''.join(filename_parts).lower()
 
         sha.update(filename_forkey.encode(ENCODING))
         return sha.hexdigest()
@@ -1560,13 +1560,13 @@ class RCTIDataRow(InvoiceRow):
 
     def __init__(self, description, amount, gst, total, document_row=None):
         InvoiceRow.__init__(self)
-        print(f"""description: {description}, amount:{amount}, gst:{gst}, total: {total}, document_row: {document_row}""")
+        # print(f"""description: {description}, amount:{amount}, gst:{gst}, total: {total}, document_row: {document_row}""")
 
         self.description = ' '.join(description.strip().split())
-        self.amount = float(u.sanitize(str(amount))) if amount != '' and amount != ' ' and isinstance(amount,int) else 0
+        self.amount = float(u.sanitize(str(amount))) if amount != '' and amount != ' ' and isinstance(amount, int) else 0
 
-        self.gst = float(gst) if gst != '' and gst != ' ' and isinstance(amount,int) else 0
-        self.total = float(total) if total != '' and gst != ' ' and isinstance(amount,int) else 0
+        self.gst = float(gst) if gst != '' and gst != ' ' and isinstance(amount, int) else 0
+        self.total = float(total) if total != '' and gst != ' ' and isinstance(amount, int) else 0
 
         self._pair = None
         self._margin = 0
