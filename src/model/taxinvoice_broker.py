@@ -26,7 +26,6 @@ class BrokerTaxInvoice(TaxInvoice):
         self.parse()
 
     def parse(self):
-        print(self.full_path)
         dataframe = pandas.read_excel(self.full_path)
 
         dataframe_info = dataframe.replace(numpy.nan, '', regex=True)
@@ -34,7 +33,7 @@ class BrokerTaxInvoice(TaxInvoice):
 
         account_info = dataframe_info.iloc[len(dataframe_info.index) - 1][1]
         account_info_parts = str(account_info).split(':')
-        #pdb.set_trace()
+        # pdb.set_trace()
         bsb = account_info_parts[1].strip().split('/')[0][1:]
 
         account = account_info_parts[1].strip().split('/')[1]
@@ -56,10 +55,18 @@ class BrokerTaxInvoice(TaxInvoice):
         dataframe_rows = dataframe_rows.replace(numpy.nan, '', regex=True)
 
         for index, row in dataframe_rows.iterrows():
+            if row['Commission Ref ID'] == " ":
+                row["Commission Ref ID"] = "Total Amount Banked"
+
+            for k in row.keys():
+                if type(row[k]) == str:
+                    row[k] = row[k].strip()
+
             invoice_row = BrokerInvoiceRow(
                 row['Commission Type'], row['Client'], row['Commission Ref ID'], row['Bank'],
                 row['Loan Balance'], row['Amount Paid'], row['GST Paid'],
                 row['Total Amount Paid'], row['Comments'], index + 2)
+
             self.__add_datarow(invoice_row)
 
     def process_comparison(self, margin=0.000001):
@@ -332,24 +339,24 @@ class BrokerInvoiceRow(InvoiceRow):
 
     def _generate_key(self, salt=''):
         sha = hashlib.sha256()
-        sha.update(u.sanitize(self.commission_type).encode(ENCODING))
-        sha.update(u.sanitize(self.client).encode(ENCODING))
-        sha.update(self.reference_id.encode(ENCODING))
+        sha.update(u.sanitize(self.commission_type.strip()).encode(ENCODING))
+        sha.update(u.sanitize(self.client.strip()).encode(ENCODING))
+        sha.update(self.reference_id.strip().encode(ENCODING))
         sha.update(str(salt).encode(ENCODING))
         return sha.hexdigest()
 
     def _generate_key_full(self, salt=''):
         sha = hashlib.sha256()
-        sha.update(self.commission_type.encode(ENCODING))
-        sha.update(self.client.encode(ENCODING))
-        sha.update(self.reference_id.encode(ENCODING))
-        # sha.update(self.bank.encode(ENCODING))
-        sha.update(self.loan_balance.encode(ENCODING))
-        sha.update(self.amount_paid.encode(ENCODING))
-        sha.update(self.gst_paid.encode(ENCODING))
-        sha.update(self.total_amount_paid.encode(ENCODING))
-        sha.update(self.comments.encode(ENCODING))
-        sha.update(str(salt).encode(ENCODING))
+        sha.update(self.commission_type.strip().encode(ENCODING))
+        sha.update(self.client.strip().encode(ENCODING))
+        sha.update(self.reference_id.strip().encode(ENCODING))
+        # sha.update(self.bank.strip().encode(ENCODING))
+        sha.update(self.loan_balance.strip().encode(ENCODING))
+        sha.update(self.amount_paid.strip().encode(ENCODING))
+        sha.update(self.gst_paid.strip().encode(ENCODING))
+        sha.update(self.total_amount_paid.strip().encode(ENCODING))
+        sha.update(self.comments.strip().encode(ENCODING))
+        sha.update(str(salt).strip().encode(ENCODING))
         return sha.hexdigest()
 
     def equals(self, obj):
@@ -398,7 +405,6 @@ class BrokerInvoiceRow(InvoiceRow):
         errors = []
         line_a = element.row_number
         description = f"Reference ID: {element.reference_id}"
-        print(description)
         if element.pair is not None:
             line_b = element.pair.row_number
             if write_errors:
