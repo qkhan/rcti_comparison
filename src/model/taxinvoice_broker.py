@@ -55,12 +55,13 @@ class BrokerTaxInvoice(TaxInvoice):
         dataframe_rows = dataframe_rows.replace(numpy.nan, '', regex=True)
 
         for index, row in dataframe_rows.iterrows():
-            if row['Commission Ref ID'] == " ":
-                row["Commission Ref ID"] = "Total Amount Banked"
 
-            for k in row.keys():
-                if type(row[k]) == str:
-                    row[k] = row[k].strip()
+            try:
+                for k in row.keys():
+                    if type(row[k]) == str:
+                        row[k] = row[k].strip()
+            except TypeError: # Try catch block for Qaisar
+                pass
 
             invoice_row = BrokerInvoiceRow(
                 row['Commission Type'], row['Client'], row['Commission Ref ID'], row['Bank'],

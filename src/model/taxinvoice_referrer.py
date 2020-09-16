@@ -78,7 +78,7 @@ class ReferrerTaxInvoice(TaxInvoice):
 
     def parse_final_total(self, soup: BeautifulSoup):
         parts_account = self._get_parts_account(soup)
-        final_total = parts_account[3].strip()
+        final_total = "$" + parts_account[3].split("$")[1].strip()
         return final_total
 
     def parse_rows(self, soup: BeautifulSoup):
