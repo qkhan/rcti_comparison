@@ -55,8 +55,6 @@ class BrokerTaxInvoice(TaxInvoice):
         dataframe_rows = dataframe_rows.replace(numpy.nan, '', regex=True)
 
         for index, row in dataframe_rows.iterrows():
-            if row['Commission Ref ID'] == " ":
-                row["Commission Ref ID"] = "Total Amount Banked"
 
             try:
                 for k in row.keys():
