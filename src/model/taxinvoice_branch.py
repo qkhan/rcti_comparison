@@ -5,40 +5,72 @@ import hashlib
 import pandas
 from xlrd.biffh import XLRDError
 
-from src.model.taxinvoice import (TaxInvoice, InvoiceRow, ENCODING, OUTPUT_DIR_BRANCH, new_error,
-                                  get_header_format, get_error_format)
+from src.model.taxinvoice import (
+    TaxInvoice,
+    InvoiceRow,
+    ENCODING,
+    OUTPUT_DIR_BRANCH,
+    new_error,
+    get_header_format,
+    get_error_format,
+)
 
 from src import utils as u
 from src.utils import bcolors
 
-HEADER_VBI = ['Broker', 'Lender', 'Client', 'Ref #', 'Settled Loan',
-              'Settlement Date', 'Commission', 'GST', 'Fee/Commission Split',
-              'Fees GST', 'Remitted/Net', 'Paid To Broker', 'Paid To Referrer', 'Retained']
+HEADER_VBI = [
+    "Broker",
+    "Lender",
+    "Client",
+    "Ref #",
+    "Settled Loan",
+    "Settlement Date",
+    "Commission",
+    "GST",
+    "Fee/Commission Split",
+    "Fees GST",
+    "Remitted/Net",
+    "Paid To Broker",
+    "Paid To Referrer",
+    "Retained",
+]
 
 HEADER_UPFRONT = HEADER_VBI
 
-HEADER_TRAIL = ['Broker', 'Lender', 'Client', 'Ref #', 'Loan Balance',
-                'Settlement Date', 'Commission', 'GST', 'Fee/Commission Split',
-                'Fees GST', 'Remitted/Net', 'Paid To Broker', 'Paid To Referrer', 'Retained']
+HEADER_TRAIL = [
+    "Broker",
+    "Lender",
+    "Client",
+    "Ref #",
+    "Loan Balance",
+    "Settlement Date",
+    "Commission",
+    "GST",
+    "Fee/Commission Split",
+    "Fees GST",
+    "Remitted/Net",
+    "Paid To Broker",
+    "Paid To Referrer",
+    "Retained",
+]
 
-HEADER_TAXINVOICE = ['Description', 'Amount', 'Gst', 'Total', 'Comments']
+HEADER_TAXINVOICE = ["Description", "Amount", "Gst", "Total", "Comments"]
 
-HEADER_RCTI = ['Description', 'Amount', 'Gst', 'Total']
+HEADER_RCTI = ["Description", "Amount", "Gst", "Total"]
 
 HEADER_SUMMARY = HEADER_RCTI
 
-HEADER_SUMMARY_SHORTENED = ['Description', 'Amount']
+HEADER_SUMMARY_SHORTENED = ["Description", "Amount"]
 
-TAB_SUMMARY = 'Summary'
-TAB_RCTI = 'RCTI'
-TAB_TAX_INVOICE = 'Tax Invoice'
-TAB_UPFRONT_DATA = 'Upfront Data'
-TAB_TRAIL_DATA = 'Trail Data'
-TAB_VBI_DATA = 'Vbi Data'
+TAB_SUMMARY = "Summary"
+TAB_RCTI = "RCTI"
+TAB_TAX_INVOICE = "Tax Invoice"
+TAB_UPFRONT_DATA = "Upfront Data"
+TAB_TRAIL_DATA = "Trail Data"
+TAB_VBI_DATA = "Vbi Data"
 
 
 class BranchTaxInvoice(TaxInvoice):
-
     def __init__(self, directory, filename):
         TaxInvoice.__init__(self, directory, filename)
         self.pair = None
@@ -60,18 +92,18 @@ class BranchTaxInvoice(TaxInvoice):
         self.tax_invoice_data_rows_a_count = {}
         self.tax_invoice_data_rows_b = {}
         self.tax_invoice_data_rows_b_count = {}
-        self.tax_invoice_from = ''
-        self.tax_invoice_from_abn = ''
-        self.tax_invoice_to = ''
-        self.tax_invoice_to_abn = ''
+        self.tax_invoice_from = ""
+        self.tax_invoice_from_abn = ""
+        self.tax_invoice_to = ""
+        self.tax_invoice_to_abn = ""
 
         # RCTI tab fields
         self.rcti_data_rows = {}
         self.rcti_data_rows_count = {}
-        self.rcti_from = ''
-        self.rcti_from_abn = ''
-        self.rcti_to = ''
-        self.rcti_to_abn = ''
+        self.rcti_from = ""
+        self.rcti_from_abn = ""
+        self.rcti_to = ""
+        self.rcti_to_abn = ""
 
         # Summary_tab_fields
         self.summary_summary = {}
@@ -84,8 +116,8 @@ class BranchTaxInvoice(TaxInvoice):
         self.summary_ptrff_count = {}
         self.summary_mobrtb = {}  # money owned by referrers to branch
         self.summary_mobrtb_count = {}
-        self.summary_from = ''
-        self.summary_to = ''
+        self.summary_from = ""
+        self.summary_to = ""
 
         self.summary_errors = []
         self._key = self._generate_key()
@@ -102,30 +134,31 @@ class BranchTaxInvoice(TaxInvoice):
     def parse_tab_vbi_data(self, tab):
         try:
             df = pandas.read_excel(self.full_path, sheet_name=tab)
-            df = df.dropna(how='all')
-            df = df.replace(numpy.nan, '', regex=True)
-            df = df.replace('--', ' ', regex=True)
-            if df.columns[0] != 'Broker':
+            df = df.dropna(how="all")
+            df = df.replace(numpy.nan, "", regex=True)
+            df = df.replace("--", " ", regex=True)
+            if df.columns[0] != "Broker":
                 df = df.rename(columns=df.iloc[0]).drop(df.index[0])
 
             for index, row in df.iterrows():
                 vbidatarow = VBIDataRow(
-                    row['Broker'],
-                    row['Lender'],
-                    row['Client'],
-                    row['Ref #'],
+                    row["Broker"],
+                    row["Lender"],
+                    row["Client"],
+                    row["Ref #"],
                     # row['Referrer'],
-                    float(row['Settled Loan']),
-                    row['Settlement Date'],
-                    float(row['Commission']),
-                    float(row['GST']),
-                    float(row['Fee/Commission Split']),
-                    float(row['Fees GST']),
-                    float(row['Remitted/Net']),
-                    float(row['Paid To Broker']),
-                    float(row['Paid To Referrer']),
-                    float(row['Retained']),
-                    index)
+                    float(row["Settled Loan"]),
+                    row["Settlement Date"],
+                    float(row["Commission"]),
+                    float(row["GST"]),
+                    float(row["Fee/Commission Split"]),
+                    float(row["Fees GST"]),
+                    float(row["Remitted/Net"]),
+                    float(row["Paid To Broker"]),
+                    float(row["Paid To Referrer"]),
+                    float(row["Retained"]),
+                    index,
+                )
                 if tab == TAB_VBI_DATA:
                     self.__add_datarow(self.vbi_data_rows, self.vbi_data_rows_count, vbidatarow)
                 elif tab == TAB_UPFRONT_DATA:
@@ -135,42 +168,42 @@ class BranchTaxInvoice(TaxInvoice):
 
     def parse_tab_trail_data(self):
         df = pandas.read_excel(self.full_path, sheet_name=TAB_TRAIL_DATA)
-        df = df.dropna(how='all')
-        df = df.replace(numpy.nan, '', regex=True)
-        df = df.replace('--', ' ', regex=True)
-        if df.columns[0] != 'Broker':
+        df = df.dropna(how="all")
+        df = df.replace(numpy.nan, "", regex=True)
+        df = df.replace("--", " ", regex=True)
+        if df.columns[0] != "Broker":
             df = df.rename(columns=df.iloc[0]).drop(df.index[0])
 
         for index, row in df.iterrows():
             traildatarow = TrailDataRow(
-                row['Broker'],
-                row['Lender'],
-                row['Client'],
-                row['Ref #'],
+                row["Broker"],
+                row["Lender"],
+                row["Client"],
+                row["Ref #"],
                 # row['Referrer'],
-                float(row['Loan Balance']),
-                row['Settlement Date'],
-                float(row['Commission']),
-                float(row['GST']),
-                float(row['Fee/Commission Split']),
-                float(row['Fees GST']),
-                float(row['Remitted/Net']),
-                float(row['Paid To Broker']),
-                float(row['Paid To Referrer']),
-                float(row['Retained']),
-                index)
+                float(row["Loan Balance"]),
+                row["Settlement Date"],
+                float(row["Commission"]),
+                float(row["GST"]),
+                float(row["Fee/Commission Split"]),
+                float(row["Fees GST"]),
+                float(row["Remitted/Net"]),
+                float(row["Paid To Broker"]),
+                float(row["Paid To Referrer"]),
+                float(row["Retained"]),
+                index,
+            )
             self.__add_datarow(self.trail_data_rows, self.trail_data_rows_count, traildatarow)
 
     def parse_tab_tax_invoice(self):
         df = pandas.read_excel(self.full_path, sheet_name=TAB_TAX_INVOICE)
-        if df.iloc[1]['Tax Invoice Summary'] == 'Date:':
+        if df.iloc[1]["Tax Invoice Summary"] == "Date:":
             df = df.drop(index=1)
 
-        df = df.replace(' ', numpy.nan, regex=False)
-        df = df.dropna(how='all')
-        df = df.replace(numpy.nan, '', regex=True)
+        df = df.replace(" ", numpy.nan, regex=False)
+        df = df.dropna(how="all")
+        df = df.replace(numpy.nan, "", regex=True)
 
-        print(self.full_path)
         if df.iloc[0][1]:
             self.tax_invoice_from = df.iloc[0][1].strip()
         else:
@@ -186,10 +219,10 @@ class BranchTaxInvoice(TaxInvoice):
         current_section = 1
         index = 0
         for i, row in df.iterrows():
-            if row[0].lower().endswith('software fee breakdown'):
+            if row[0].lower().endswith("software fee breakdown"):
                 current_section = 2
                 section2_start = index + 1
-            elif row[0].lower() == 'total':
+            elif row[0].lower() == "total":
                 if current_section == 1:
                     section1_end = index + 1
                 elif current_section == 2:
@@ -205,21 +238,21 @@ class BranchTaxInvoice(TaxInvoice):
 
         if section2_start is not None:
             for index, row in df_b.iterrows():
-                invoicerow = TaxInvoiceDataRow(' '.join(row[0].split()), row[1], row[2], row[3], row[4], index)
+                invoicerow = TaxInvoiceDataRow(" ".join(row[0].split()), row[1], row[2], row[3], row[4], index)
                 self.__add_datarow(self.tax_invoice_data_rows_b, self.tax_invoice_data_rows_b_count, invoicerow)
 
     def parse_tab_rcti(self):
         df = pandas.read_excel(self.full_path, sheet_name=TAB_RCTI)
-        df = df.replace(' ', numpy.nan, regex=False)
-        df = df.dropna(how='all')
-        df = df.replace(numpy.nan, '', regex=True)
+        df = df.replace(" ", numpy.nan, regex=False)
+        df = df.dropna(how="all")
+        df = df.replace(numpy.nan, "", regex=True)
 
         self.rcti_from = str(df.iloc[1][1]).strip()
         self.rcti_from_abn = str(df.iloc[2][1]).strip()
         self.rcti_to = str(df.iloc[3][1]).strip()
         self.rcti_to_abn = str(df.iloc[4][1]).strip()
 
-        df = df[7:len(df)]
+        df = df[7 : len(df)]
 
         for index, row in df.iterrows():
             rctirow = RCTIDataRow(row[0], row[1], row[2], row[3], index)
@@ -227,12 +260,12 @@ class BranchTaxInvoice(TaxInvoice):
 
     def parse_tab_summary(self):
         df = pandas.read_excel(self.full_path, sheet_name=TAB_SUMMARY)
-        df = df.replace('  ', '', regex=False)
-        df = df.replace(' ', numpy.nan, regex=False)
-        df = df.dropna(how='all')
-        df = df.replace(numpy.nan, '', regex=True)
+        df = df.replace("  ", "", regex=False)
+        df = df.replace(" ", numpy.nan, regex=False)
+        df = df.dropna(how="all")
+        df = df.replace(numpy.nan, "", regex=True)
 
-        if df.iloc[0][0].strip() == 'Date:':
+        if df.iloc[0][0].strip() == "Date:":
             df = df.drop(index=1)
 
         self.summary_from = df.iloc[1][1].strip()
@@ -253,26 +286,26 @@ class BranchTaxInvoice(TaxInvoice):
         current_df = 0
         index = 0
         for i, row in df.iterrows():
-            if row[0].lower() == 'carried forward balance':
+            if row[0].lower() == "carried forward balance":
                 current_df = 1
                 df1_start = index
-            elif row[0].lower().startswith('payment to brokers from'):
+            elif row[0].lower().startswith("payment to brokers from"):
                 current_df = 2
                 df2_start = index + 1
-            elif row[0].lower().startswith('payment to referrers from'):
+            elif row[0].lower().startswith("payment to referrers from"):
                 current_df = 3
                 df3_start = index + 1
-            elif row[0].lower() == 'money owed by brokers to branch':
+            elif row[0].lower() == "money owed by brokers to branch":
                 current_df = 4
                 df4_start = index + 1
-            elif row[0].lower() == 'money owed by referrers to branch':
+            elif row[0].lower() == "money owed by referrers to branch":
                 current_df = 5
                 df5_start = index + 1
 
-            elif row[0].lower() == '# of admin ids':
+            elif row[0].lower() == "# of admin ids":
                 df1_end = index + 1
 
-            elif row[0].lower() == 'total':
+            elif row[0].lower() == "total":
                 if current_df == 2:
                     df2_end = index + 1
                 elif current_df == 3:
@@ -320,9 +353,9 @@ class BranchTaxInvoice(TaxInvoice):
     # OH GOD WHY?
     def process_comparison(self, margin=0.000001):
         """
-            Runs the comparison of the file with its own pair.
-            If the comaprison is successfull it creates a DETAILED file and returns the
-            Summary information.
+        Runs the comparison of the file with its own pair.
+        If the comaprison is successfull it creates a DETAILED file and returns the
+        Summary information.
         """
         if self.pair is None:
             return None
@@ -339,35 +372,67 @@ class BranchTaxInvoice(TaxInvoice):
         col_b = 5
 
         format_ = fmt_error if not self.equal_summary_from else None
-        worksheet_summary.write(row, col_a, 'From')
+        worksheet_summary.write(row, col_a, "From")
         worksheet_summary.write(row, col_a + 1, self.summary_from, format_)
         row += 1
         format_ = fmt_error if not self.equal_summary_to else None
-        worksheet_summary.write(row, col_a, 'To')
+        worksheet_summary.write(row, col_a, "To")
         worksheet_summary.write(row, col_a + 1, self.summary_to, format_)
         row += 1
 
         if self.pair is not None:
             row = 0
             format_ = fmt_error if not self.equal_summary_from else None
-            worksheet_summary.write(row, col_b, 'From')
+            worksheet_summary.write(row, col_b, "From")
             worksheet_summary.write(row, col_b + 1, self.pair.summary_from, format_)
             row += 1
             format_ = fmt_error if not self.equal_summary_to else None
-            worksheet_summary.write(row, col_b, 'To')
+            worksheet_summary.write(row, col_b, "To")
             worksheet_summary.write(row, col_b + 1, self.pair.summary_to, format_)
             row += 1
 
             if not self.equal_summary_from:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'From does not match', '', '', self.summary_from, self.pair.summary_from, tab=TAB_SUMMARY))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "From does not match",
+                        "",
+                        "",
+                        self.summary_from,
+                        self.pair.summary_from,
+                        tab=TAB_SUMMARY,
+                    )
+                )
             if not self.equal_summary_to:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'To does not match', '', '', self.summary_to, self.pair.summary_to, tab=TAB_SUMMARY))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "To does not match",
+                        "",
+                        "",
+                        self.summary_to,
+                        self.pair.summary_to,
+                        tab=TAB_SUMMARY,
+                    )
+                )
             row += 1
 
-        sections = [self.summary_summary, self.summary_ptbff, self.summary_mobbtb, self.summary_ptrff, self.summary_mobrtb]
-        sections_pairs = [self.pair.summary_summary, self.pair.summary_ptbff, self.pair.summary_mobbtb, self.pair.summary_ptrff, self.pair.summary_mobrtb]
+        sections = [
+            self.summary_summary,
+            self.summary_ptbff,
+            self.summary_mobbtb,
+            self.summary_ptrff,
+            self.summary_mobrtb,
+        ]
+        sections_pairs = [
+            self.pair.summary_summary,
+            self.pair.summary_ptbff,
+            self.pair.summary_mobbtb,
+            self.pair.summary_ptrff,
+            self.pair.summary_mobrtb,
+        ]
         use_header = HEADER_SUMMARY
         for sec_index, section in enumerate(sections):
             for index, item in enumerate(use_header):
@@ -396,15 +461,34 @@ class BranchTaxInvoice(TaxInvoice):
                     pair_row.margin = margin
                     pair_row.pair = self_row
                     self.summary_errors += RCTIDataRow.write_row(
-                        worksheet_summary, self, pair_row, row, fmt_error, TAB_SUMMARY, 'right', ignore_last_two, write_errors=False)
+                        worksheet_summary,
+                        self,
+                        pair_row,
+                        row,
+                        fmt_error,
+                        TAB_SUMMARY,
+                        "right",
+                        ignore_last_two,
+                        write_errors=False,
+                    )
 
                 self.summary_errors += RCTIDataRow.write_row(
-                    worksheet_summary, self, self_row, row, fmt_error, TAB_SUMMARY, ignore_last_two=ignore_last_two)
+                    worksheet_summary, self, self_row, row, fmt_error, TAB_SUMMARY, ignore_last_two=ignore_last_two
+                )
                 row += 1
 
             for key in keys_unmatched:
                 self.summary_errors += RCTIDataRow.write_row(
-                    worksheet_summary, self, sections_pairs[sec_index][key], row, fmt_error, TAB_SUMMARY, 'right', ignore_last_two, write_errors=False)
+                    worksheet_summary,
+                    self,
+                    sections_pairs[sec_index][key],
+                    row,
+                    fmt_error,
+                    TAB_SUMMARY,
+                    "right",
+                    ignore_last_two,
+                    write_errors=False,
+                )
                 row += 1
 
             use_header = HEADER_SUMMARY_SHORTENED
@@ -418,51 +502,91 @@ class BranchTaxInvoice(TaxInvoice):
         col_b = 5
 
         format_ = fmt_error if not self.equal_rcti_from else None
-        worksheet_rcti.write(row, col_a, 'From')
+        worksheet_rcti.write(row, col_a, "From")
         worksheet_rcti.write(row, col_a + 1, self.rcti_from, format_)
         row += 1
         format_ = fmt_error if not self.equal_rcti_from_abn else None
-        worksheet_rcti.write(row, col_a, 'From ABN')
+        worksheet_rcti.write(row, col_a, "From ABN")
         worksheet_rcti.write(row, col_a + 1, self.rcti_from_abn, format_)
         row += 1
         format_ = fmt_error if not self.equal_rcti_to else None
-        worksheet_rcti.write(row, col_a, 'To')
+        worksheet_rcti.write(row, col_a, "To")
         worksheet_rcti.write(row, col_a + 1, self.rcti_to, format_)
         row += 1
         format_ = fmt_error if not self.equal_rcti_to_abn else None
-        worksheet_rcti.write(row, col_a, 'To ABN')
+        worksheet_rcti.write(row, col_a, "To ABN")
         worksheet_rcti.write(row, col_a + 1, self.rcti_to_abn, format_)
 
         if self.pair is not None:
             row = 0
             format_ = fmt_error if not self.equal_rcti_from else None
-            worksheet_rcti.write(row, col_b, 'From')
+            worksheet_rcti.write(row, col_b, "From")
             worksheet_rcti.write(row, col_b + 1, self.pair.rcti_from, format_)
             row += 1
             format_ = fmt_error if not self.equal_rcti_from_abn else None
-            worksheet_rcti.write(row, col_b, 'From ABN')
+            worksheet_rcti.write(row, col_b, "From ABN")
             worksheet_rcti.write(row, col_b + 1, self.pair.rcti_from_abn, format_)
             row += 1
             format_ = fmt_error if not self.equal_rcti_to else None
-            worksheet_rcti.write(row, col_b, 'To')
+            worksheet_rcti.write(row, col_b, "To")
             worksheet_rcti.write(row, col_b + 1, self.pair.rcti_to, format_)
             row += 1
             format_ = fmt_error if not self.equal_rcti_to_abn else None
-            worksheet_rcti.write(row, col_b, 'To ABN')
+            worksheet_rcti.write(row, col_b, "To ABN")
             worksheet_rcti.write(row, col_b + 1, self.pair.rcti_to_abn, format_)
 
             if not self.equal_rcti_from:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'From does not match', '', '', self.rcti_from, self.pair.rcti_from, tab=TAB_RCTI))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "From does not match",
+                        "",
+                        "",
+                        self.rcti_from,
+                        self.pair.rcti_from,
+                        tab=TAB_RCTI,
+                    )
+                )
             if not self.equal_rcti_from_abn:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'From ABN does not match', '', '', self.rcti_from_abn, self.pair.rcti_from_abn, tab=TAB_RCTI))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "From ABN does not match",
+                        "",
+                        "",
+                        self.rcti_from_abn,
+                        self.pair.rcti_from_abn,
+                        tab=TAB_RCTI,
+                    )
+                )
             if not self.equal_rcti_to:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'To does not match', '', '', self.rcti_to, self.pair.rcti_to, tab=TAB_RCTI))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "To does not match",
+                        "",
+                        "",
+                        self.rcti_to,
+                        self.pair.rcti_to,
+                        tab=TAB_RCTI,
+                    )
+                )
             if not self.equal_rcti_to_abn:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'To ABN does not match', '', '', self.rcti_to_abn, self.pair.rcti_to_abn, tab=TAB_RCTI))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "To ABN does not match",
+                        "",
+                        "",
+                        self.rcti_to_abn,
+                        self.pair.rcti_to_abn,
+                        tab=TAB_RCTI,
+                    )
+                )
 
         row += 2
 
@@ -490,14 +614,23 @@ class BranchTaxInvoice(TaxInvoice):
                 pair_row.margin = margin
                 pair_row.pair = self_row
                 self.summary_errors += RCTIDataRow.write_row(
-                    worksheet_rcti, self, pair_row, row, fmt_error, TAB_RCTI, 'right', write_errors=False)
+                    worksheet_rcti, self, pair_row, row, fmt_error, TAB_RCTI, "right", write_errors=False
+                )
 
             self.summary_errors += RCTIDataRow.write_row(worksheet_rcti, self, self_row, row, fmt_error, TAB_RCTI)
             row += 1
 
         for key in keys_unmatched:
             self.summary_errors += RCTIDataRow.write_row(
-                worksheet_rcti, self, self.pair.rcti_data_rows[key], row, fmt_error, TAB_RCTI, 'right', write_errors=False)
+                worksheet_rcti,
+                self,
+                self.pair.rcti_data_rows[key],
+                row,
+                fmt_error,
+                TAB_RCTI,
+                "right",
+                write_errors=False,
+            )
             row += 1
         # endregion
 
@@ -508,51 +641,91 @@ class BranchTaxInvoice(TaxInvoice):
         col_b = 6
 
         format_ = fmt_error if not self.equal_tax_invoice_from else None
-        worksheet_tax_invoice.write(row, col_a, 'From')
+        worksheet_tax_invoice.write(row, col_a, "From")
         worksheet_tax_invoice.write(row, col_a + 1, self.tax_invoice_from, format_)
         row += 1
         format_ = fmt_error if not self.equal_tax_invoice_from_abn else None
-        worksheet_tax_invoice.write(row, col_a, 'From ABN')
+        worksheet_tax_invoice.write(row, col_a, "From ABN")
         worksheet_tax_invoice.write(row, col_a + 1, self.tax_invoice_from_abn, format_)
         row += 1
         format_ = fmt_error if not self.equal_tax_invoice_to else None
-        worksheet_tax_invoice.write(row, col_a, 'To')
+        worksheet_tax_invoice.write(row, col_a, "To")
         worksheet_tax_invoice.write(row, col_a + 1, self.tax_invoice_to, format_)
         row += 1
         format_ = fmt_error if not self.equal_tax_invoice_to_abn else None
-        worksheet_tax_invoice.write(row, col_a, 'To ABN')
+        worksheet_tax_invoice.write(row, col_a, "To ABN")
         worksheet_tax_invoice.write(row, col_a + 1, self.tax_invoice_to_abn, format_)
 
         if self.pair is not None:
             row = 0
             format_ = fmt_error if not self.equal_tax_invoice_from else None
-            worksheet_tax_invoice.write(row, col_b, 'From')
+            worksheet_tax_invoice.write(row, col_b, "From")
             worksheet_tax_invoice.write(row, col_b + 1, self.pair.tax_invoice_from, format_)
             row += 1
             format_ = fmt_error if not self.equal_tax_invoice_from_abn else None
-            worksheet_tax_invoice.write(row, col_b, 'From ABN')
+            worksheet_tax_invoice.write(row, col_b, "From ABN")
             worksheet_tax_invoice.write(row, col_b + 1, self.pair.tax_invoice_from_abn, format_)
             row += 1
             format_ = fmt_error if not self.equal_tax_invoice_to else None
-            worksheet_tax_invoice.write(row, col_b, 'To')
+            worksheet_tax_invoice.write(row, col_b, "To")
             worksheet_tax_invoice.write(row, col_b + 1, self.pair.tax_invoice_to, format_)
             row += 1
             format_ = fmt_error if not self.equal_tax_invoice_to_abn else None
-            worksheet_tax_invoice.write(row, col_b, 'To ABN')
+            worksheet_tax_invoice.write(row, col_b, "To ABN")
             worksheet_tax_invoice.write(row, col_b + 1, self.pair.tax_invoice_to_abn, format_)
 
             if not self.equal_tax_invoice_from:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'From does not match', '', '', self.tax_invoice_from, self.pair.tax_invoice_from, tab=TAB_TAX_INVOICE))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "From does not match",
+                        "",
+                        "",
+                        self.tax_invoice_from,
+                        self.pair.tax_invoice_from,
+                        tab=TAB_TAX_INVOICE,
+                    )
+                )
             if not self.equal_tax_invoice_from_abn:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'From ABN does not match', '', '', self.tax_invoice_from_abn, self.pair.tax_invoice_from_abn, tab=TAB_TAX_INVOICE))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "From ABN does not match",
+                        "",
+                        "",
+                        self.tax_invoice_from_abn,
+                        self.pair.tax_invoice_from_abn,
+                        tab=TAB_TAX_INVOICE,
+                    )
+                )
             if not self.equal_tax_invoice_to:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'To does not match', '', '', self.tax_invoice_to, self.pair.tax_invoice_to, tab=TAB_TAX_INVOICE))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "To does not match",
+                        "",
+                        "",
+                        self.tax_invoice_to,
+                        self.pair.tax_invoice_to,
+                        tab=TAB_TAX_INVOICE,
+                    )
+                )
             if not self.equal_tax_invoice_to_abn:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'To ABN does not match', '', '', self.tax_invoice_to_abn, self.pair.tax_invoice_to_abn, tab=TAB_TAX_INVOICE))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "To ABN does not match",
+                        "",
+                        "",
+                        self.tax_invoice_to_abn,
+                        self.pair.tax_invoice_to_abn,
+                        tab=TAB_TAX_INVOICE,
+                    )
+                )
 
         row += 2
 
@@ -581,14 +754,22 @@ class BranchTaxInvoice(TaxInvoice):
                 pair_row.margin = margin
                 pair_row.pair = self_row
                 self.summary_errors += TaxInvoiceDataRow.write_row(
-                    worksheet_tax_invoice, self, pair_row, row, fmt_error, 'right', write_errors=False)
+                    worksheet_tax_invoice, self, pair_row, row, fmt_error, "right", write_errors=False
+                )
 
             self.summary_errors += TaxInvoiceDataRow.write_row(worksheet_tax_invoice, self, self_row, row, fmt_error)
             row += 1
 
         for key in keys_unmatched:
             self.summary_errors += TaxInvoiceDataRow.write_row(
-                worksheet_tax_invoice, self, self.pair.tax_invoice_data_rows_a[key], row, fmt_error, 'right', write_errors=False)
+                worksheet_tax_invoice,
+                self,
+                self.pair.tax_invoice_data_rows_a[key],
+                row,
+                fmt_error,
+                "right",
+                write_errors=False,
+            )
             row += 1
         row += 2
 
@@ -617,14 +798,22 @@ class BranchTaxInvoice(TaxInvoice):
                 pair_row.margin = margin
                 pair_row.pair = self_row
                 self.summary_errors += TaxInvoiceDataRow.write_row(
-                    worksheet_tax_invoice, self, pair_row, row, fmt_error, 'right', write_errors=False)
+                    worksheet_tax_invoice, self, pair_row, row, fmt_error, "right", write_errors=False
+                )
 
             self.summary_errors += TaxInvoiceDataRow.write_row(worksheet_tax_invoice, self, self_row, row, fmt_error)
             row += 1
 
         for key in keys_unmatched:
             self.summary_errors += TaxInvoiceDataRow.write_row(
-                worksheet_tax_invoice, self, self.pair.tax_invoice_data_rows_b[key], row, fmt_error, 'right', write_errors=False)
+                worksheet_tax_invoice,
+                self,
+                self.pair.tax_invoice_data_rows_b[key],
+                row,
+                fmt_error,
+                "right",
+                write_errors=False,
+            )
             row += 1
         # endregion
 
@@ -660,15 +849,26 @@ class BranchTaxInvoice(TaxInvoice):
                 pair_row.margin = margin
                 pair_row.pair = self_row
                 self.summary_errors += VBIDataRow.write_row(
-                    worksheet_upfront, self, pair_row, row, fmt_error, TAB_UPFRONT_DATA, 'right', write_errors=False)
+                    worksheet_upfront, self, pair_row, row, fmt_error, TAB_UPFRONT_DATA, "right", write_errors=False
+                )
 
-            self.summary_errors += VBIDataRow.write_row(worksheet_upfront, self, self_row, row, fmt_error, TAB_UPFRONT_DATA)
+            self.summary_errors += VBIDataRow.write_row(
+                worksheet_upfront, self, self_row, row, fmt_error, TAB_UPFRONT_DATA
+            )
             row += 1
 
         # Write unmatched records
         for key in keys_unmatched:
             self.summary_errors += VBIDataRow.write_row(
-                worksheet_upfront, self, self.pair.upfront_data_rows[key], row, fmt_error, TAB_UPFRONT_DATA, 'right', write_errors=False)
+                worksheet_upfront,
+                self,
+                self.pair.upfront_data_rows[key],
+                row,
+                fmt_error,
+                TAB_UPFRONT_DATA,
+                "right",
+                write_errors=False,
+            )
             row += 1
         # endregion
 
@@ -704,7 +904,8 @@ class BranchTaxInvoice(TaxInvoice):
                 pair_row.margin = margin
                 pair_row.pair = self_row
                 self.summary_errors += TrailDataRow.write_row(
-                    worksheet_trail, self, pair_row, row, fmt_error, 'right', write_errors=False)
+                    worksheet_trail, self, pair_row, row, fmt_error, "right", write_errors=False
+                )
 
             self.summary_errors += TrailDataRow.write_row(worksheet_trail, self, self_row, row, fmt_error)
             row += 1
@@ -712,7 +913,8 @@ class BranchTaxInvoice(TaxInvoice):
         # Write unmatched records
         for key in keys_unmatched:
             self.summary_errors += TrailDataRow.write_row(
-                worksheet_trail, self, self.pair.trail_data_rows[key], row, fmt_error, 'right', write_errors=False)
+                worksheet_trail, self, self.pair.trail_data_rows[key], row, fmt_error, "right", write_errors=False
+            )
             row += 1
         # endregion
 
@@ -748,7 +950,8 @@ class BranchTaxInvoice(TaxInvoice):
                 pair_row.margin = margin
                 pair_row.pair = self_row
                 self.summary_errors += VBIDataRow.write_row(
-                    worksheet_vbi, self, pair_row, row, fmt_error, TAB_VBI_DATA, 'right', write_errors=False)
+                    worksheet_vbi, self, pair_row, row, fmt_error, TAB_VBI_DATA, "right", write_errors=False
+                )
 
             self.summary_errors += VBIDataRow.write_row(worksheet_vbi, self, self_row, row, fmt_error, TAB_VBI_DATA)
             row += 1
@@ -756,7 +959,15 @@ class BranchTaxInvoice(TaxInvoice):
         # Write unmatched records
         for key in keys_unmatched:
             self.summary_errors += VBIDataRow.write_row(
-                worksheet_vbi, self, self.pair.vbi_data_rows[key], row, fmt_error, TAB_VBI_DATA, 'right', write_errors=False)
+                worksheet_vbi,
+                self,
+                self.pair.vbi_data_rows[key],
+                row,
+                fmt_error,
+                TAB_VBI_DATA,
+                "right",
+                write_errors=False,
+            )
             row += 1
         # endregion
 
@@ -835,6 +1046,7 @@ class BranchTaxInvoice(TaxInvoice):
         if self.pair is None:
             return False
         return self.summary_to == self.pair.summary_to
+
     # endregion
 
     def find_pair_row(self, row, pair_datarows):
@@ -860,26 +1072,40 @@ class BranchTaxInvoice(TaxInvoice):
     def _generate_key(self):
         sha = hashlib.sha256()
 
-        filename_parts = self.filename.split('Branch')
+        filename_parts = self.filename.split("Branch")
         filename_parts = filename_parts[0].split("_")
-        filename_forkey = ''.join(filename_parts).lower()
+        filename_forkey = "".join(filename_parts).lower()
 
         sha.update(filename_forkey.encode(ENCODING))
         return sha.hexdigest()
 
 
 class VBIDataRow(InvoiceRow):
-
-    def __init__(self, broker, lender, client, ref_no, settled_loan, settlement_date,
-                 commission, gst, commission_split, fees_gst, remitted, paid_to_broker,
-                 paid_to_referrer, retained, document_row=None):
+    def __init__(
+        self,
+        broker,
+        lender,
+        client,
+        ref_no,
+        settled_loan,
+        settlement_date,
+        commission,
+        gst,
+        commission_split,
+        fees_gst,
+        remitted,
+        paid_to_broker,
+        paid_to_referrer,
+        retained,
+        document_row=None,
+    ):
         InvoiceRow.__init__(self)
 
         self.broker = str(broker).strip()
         self.lender = lender.strip()
         self.client = client.strip()
-        self.ref_no = str(ref_no).strip().split('.')[0]
-        self.referrer = ''
+        self.ref_no = str(ref_no).strip().split(".")[0]
+        self.referrer = ""
         self.settled_loan = settled_loan
         self.settlement_date = settlement_date
         self.commission = commission
@@ -1000,9 +1226,10 @@ class VBIDataRow(InvoiceRow):
         if self.pair is None:
             return False
         return self.compare_numbers(self.retained, self.pair.retained, self.margin)
+
     # endregion
 
-    def _generate_key(self, salt=''):
+    def _generate_key(self, salt=""):
         sha = hashlib.sha256()
         sha.update(u.sanitize(self.broker).encode(ENCODING))
         sha.update(u.sanitize(self.lender).encode(ENCODING))
@@ -1053,9 +1280,9 @@ class VBIDataRow(InvoiceRow):
         )
 
     @staticmethod
-    def write_row(worksheet, invoice, element, row, fmt_error, tabname, side='left', write_errors=True):
+    def write_row(worksheet, invoice, element, row, fmt_error, tabname, side="left", write_errors=True):
         col = 0
-        if side == 'right':
+        if side == "right":
             col = 16
 
         worksheet.write(row, col, element.broker)
@@ -1092,56 +1319,190 @@ class VBIDataRow(InvoiceRow):
             line_b = element.pair.document_row
             if write_errors:
                 if not element.equal_settled_loan:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Settled Loan does not match', line_a, line_b, element.settled_loan, element.pair.settled_loan, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Settled Loan does not match",
+                            line_a,
+                            line_b,
+                            element.settled_loan,
+                            element.pair.settled_loan,
+                            tab=tabname,
+                        )
+                    )
                 if not element.equal_settlement_date:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'Settlement Date does not match', line_a, line_b, element.settlement_date, element.pair.settlement_date, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Settlement Date does not match",
+                            line_a,
+                            line_b,
+                            element.settlement_date,
+                            element.pair.settlement_date,
+                            tab=tabname,
+                        )
+                    )
                 if not element.equal_commission:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'Commission does not match', line_a, line_b, element.commission, element.pair.commission, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Commission does not match",
+                            line_a,
+                            line_b,
+                            element.commission,
+                            element.pair.commission,
+                            tab=tabname,
+                        )
+                    )
                 if not element.equal_gst:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'GST does not match', line_a, line_b, element.gst, element.pair.gst, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "GST does not match",
+                            line_a,
+                            line_b,
+                            element.gst,
+                            element.pair.gst,
+                            tab=tabname,
+                        )
+                    )
                 if not element.equal_commission_split:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'Commission Split does not match', line_a, line_b, element.commission_split, element.pair.commission_split, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Commission Split does not match",
+                            line_a,
+                            line_b,
+                            element.commission_split,
+                            element.pair.commission_split,
+                            tab=tabname,
+                        )
+                    )
                 if not element.equal_fees_gst:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'Fees GST does not match', line_a, line_b, element.fees_gst, element.pair.fees_gst, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Fees GST does not match",
+                            line_a,
+                            line_b,
+                            element.fees_gst,
+                            element.pair.fees_gst,
+                            tab=tabname,
+                        )
+                    )
                 if not element.equal_remitted:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'Remitted does not match', line_a, line_b, element.remitted, element.pair.remitted, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Remitted does not match",
+                            line_a,
+                            line_b,
+                            element.remitted,
+                            element.pair.remitted,
+                            tab=tabname,
+                        )
+                    )
                 if not element.equal_paid_to_broker:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'Paid to Broker does not match', line_a, line_b, element.paid_to_broker, element.pair.paid_to_broker, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Paid to Broker does not match",
+                            line_a,
+                            line_b,
+                            element.paid_to_broker,
+                            element.pair.paid_to_broker,
+                            tab=tabname,
+                        )
+                    )
                 if not element.equal_paid_to_referrer:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'Paid to Referrer does not match', line_a, line_b, element.paid_to_referrer, element.pair.paid_to_referrer, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Paid to Referrer does not match",
+                            line_a,
+                            line_b,
+                            element.paid_to_referrer,
+                            element.pair.paid_to_referrer,
+                            tab=tabname,
+                        )
+                    )
                 if not element.equal_retained:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'Retained does not match', line_a, line_b, element.retained, element.pair.retained, tab=tabname))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Retained does not match",
+                            line_a,
+                            line_b,
+                            element.retained,
+                            element.pair.retained,
+                            tab=tabname,
+                        )
+                    )
         else:
             if write_errors:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', line_a, '', value_a=description, tab=tabname))
+                errors.append(
+                    new_error(
+                        invoice.filename,
+                        invoice.pair.filename,
+                        "No corresponding row in commission file",
+                        line_a,
+                        "",
+                        value_a=description,
+                        tab=tabname,
+                    )
+                )
             else:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', '', line_a, value_b=description, tab=tabname))
+                errors.append(
+                    new_error(
+                        invoice.filename,
+                        invoice.pair.filename,
+                        "No corresponding row in commission file",
+                        "",
+                        line_a,
+                        value_b=description,
+                        tab=tabname,
+                    )
+                )
 
         return errors
 
 
 class TrailDataRow(InvoiceRow):
-
-    def __init__(self, broker, lender, client, ref_no, loan_balance, settlement_date,
-                 commission, gst, commission_split, fees_gst, remitted, paid_to_broker,
-                 paid_to_referrer, retained, document_row=None):
+    def __init__(
+        self,
+        broker,
+        lender,
+        client,
+        ref_no,
+        loan_balance,
+        settlement_date,
+        commission,
+        gst,
+        commission_split,
+        fees_gst,
+        remitted,
+        paid_to_broker,
+        paid_to_referrer,
+        retained,
+        document_row=None,
+    ):
         InvoiceRow.__init__(self)
 
         self.broker = str(broker).strip()
         self.lender = lender.strip()
         self.client = client.strip()
-        self.ref_no = str(ref_no).strip()
-        self.referrer = ''
+        self.ref_no = str(ref_no).split(".")[0].strip()
+        self.referrer = ""
         self.loan_balance = loan_balance
         self.settlement_date = settlement_date
         self.commission = commission
@@ -1268,9 +1629,10 @@ class TrailDataRow(InvoiceRow):
         if self.pair is None:
             return False
         return self.compare_numbers(self.retained, self.pair.retained, self.margin)
+
     # endregion
 
-    def _generate_key(self, salt=''):
+    def _generate_key(self, salt=""):
         sha = hashlib.sha256()
         sha.update(u.sanitize(self.broker).encode(ENCODING))
         sha.update(u.sanitize(self.client).encode(ENCODING))
@@ -1319,9 +1681,9 @@ class TrailDataRow(InvoiceRow):
         )
 
     @staticmethod
-    def write_row(worksheet, invoice, element, row, fmt_error, side='left', write_errors=True):
+    def write_row(worksheet, invoice, element, row, fmt_error, side="left", write_errors=True):
         col = 0
-        if side == 'right':
+        if side == "right":
             col = 16
 
         worksheet.write(row, col, element.broker)
@@ -1359,56 +1721,185 @@ class TrailDataRow(InvoiceRow):
             line_b = element.pair.document_row
             if write_errors:
                 if not element.equal_lender:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename,  'Lender does not match', line_a, line_b, element.lender, element.pair.lender, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Lender does not match",
+                            line_a,
+                            line_b,
+                            element.lender,
+                            element.pair.lender,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_loan_balance:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Loan Balance does not match', line_a, line_b, element.loan_balance, element.pair.loan_balance, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Loan Balance does not match",
+                            line_a,
+                            line_b,
+                            element.loan_balance,
+                            element.pair.loan_balance,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_settlement_date:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Settlement Date does not match', line_a, line_b, element.settlement_date, element.pair.settlement_date, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Settlement Date does not match",
+                            line_a,
+                            line_b,
+                            element.settlement_date,
+                            element.pair.settlement_date,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_commission:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Commission does not match', line_a, line_b, element.commission, element.pair.commission, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Commission does not match",
+                            line_a,
+                            line_b,
+                            element.commission,
+                            element.pair.commission,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_gst:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'GST does not match', line_a, line_b, element.gst, element.pair.gst, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "GST does not match",
+                            line_a,
+                            line_b,
+                            element.gst,
+                            element.pair.gst,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_commission_split:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Commission Split does not match', line_a, line_b, element.commission_split, element.pair.commission_split, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Commission Split does not match",
+                            line_a,
+                            line_b,
+                            element.commission_split,
+                            element.pair.commission_split,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_fees_gst:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Fees GST does not match', line_a, line_b, element.fees_gst, element.pair.fees_gst, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Fees GST does not match",
+                            line_a,
+                            line_b,
+                            element.fees_gst,
+                            element.pair.fees_gst,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_remitted:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Remitted does not match', line_a, line_b, element.remitted, element.pair.remitted, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Remitted does not match",
+                            line_a,
+                            line_b,
+                            element.remitted,
+                            element.pair.remitted,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_paid_to_broker:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Paid to Broker does not match', line_a, line_b, element.paid_to_broker, element.pair.paid_to_broker, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Paid to Broker does not match",
+                            line_a,
+                            line_b,
+                            element.paid_to_broker,
+                            element.pair.paid_to_broker,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_paid_to_referrer:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Paid to Referrer does not match', line_a, line_b, element.paid_to_referrer, element.pair.paid_to_referrer, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Paid to Referrer does not match",
+                            line_a,
+                            line_b,
+                            element.paid_to_referrer,
+                            element.pair.paid_to_referrer,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
                 if not element.equal_retained:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Retained does not match', line_a, line_b, element.retained, element.pair.retained, tab=TAB_TRAIL_DATA))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Retained does not match",
+                            line_a,
+                            line_b,
+                            element.retained,
+                            element.pair.retained,
+                            tab=TAB_TRAIL_DATA,
+                        )
+                    )
         else:
             if write_errors:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', line_a, '', value_a=description, tab=TAB_TRAIL_DATA))
+                errors.append(
+                    new_error(
+                        invoice.filename,
+                        invoice.pair.filename,
+                        "No corresponding row in commission file",
+                        line_a,
+                        "",
+                        value_a=description,
+                        tab=TAB_TRAIL_DATA,
+                    )
+                )
             else:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', '', line_a, value_b=description, tab=TAB_TRAIL_DATA))
+                errors.append(
+                    new_error(
+                        invoice.filename,
+                        invoice.pair.filename,
+                        "No corresponding row in commission file",
+                        "",
+                        line_a,
+                        value_b=description,
+                        tab=TAB_TRAIL_DATA,
+                    )
+                )
 
         return errors
 
 
 class TaxInvoiceDataRow(InvoiceRow):
-
     def __init__(self, description, amount, gst, total, comments, document_row=None):
         InvoiceRow.__init__(self)
 
-        self.description = ' '.join(description.strip().split())
-        self.amount = float(amount) if amount not in ('', ' ') else 0
-        self.gst = float(gst) if gst != '' else 0
-        self.total = float(total) if total != '' else 0
+        self.description = " ".join(description.strip().split())
+        self.amount = float(amount) if amount not in ("", " ") else 0
+        self.gst = float(gst) if gst != "" else 0
+        self.total = float(total) if total != "" else 0
         self.comments = str(comments).lower()
 
         self._pair = None
@@ -1484,9 +1975,10 @@ class TaxInvoiceDataRow(InvoiceRow):
         if self.pair is None:
             return False
         return u.sanitize(self.comments) == u.sanitize(self.pair.comments)
+
     # endregion
 
-    def _generate_key(self, salt=''):
+    def _generate_key(self, salt=""):
         sha = hashlib.sha256()
         sha.update(u.sanitize(self.description).encode(ENCODING))
         sha.update(str(salt).encode(ENCODING))
@@ -1514,9 +2006,9 @@ class TaxInvoiceDataRow(InvoiceRow):
         )
 
     @staticmethod
-    def write_row(worksheet, invoice, element, row, fmt_error, side='left', write_errors=True):
+    def write_row(worksheet, invoice, element, row, fmt_error, side="left", write_errors=True):
         col = 0
-        if side == 'right':
+        if side == "right":
             col = 6
 
         worksheet.write(row, col, element.description)
@@ -1536,37 +2028,97 @@ class TaxInvoiceDataRow(InvoiceRow):
             line_b = element.pair.document_row
             if write_errors:
                 if not element.equal_amount:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Amount does not match', line_a, line_b, element.amount, element.pair.amount, tab=TAB_TAX_INVOICE))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Amount does not match",
+                            line_a,
+                            line_b,
+                            element.amount,
+                            element.pair.amount,
+                            tab=TAB_TAX_INVOICE,
+                        )
+                    )
                 if not element.equal_gst:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'GST does not match', line_a, line_b, element.gst, element.pair.gst, tab=TAB_TAX_INVOICE))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "GST does not match",
+                            line_a,
+                            line_b,
+                            element.gst,
+                            element.pair.gst,
+                            tab=TAB_TAX_INVOICE,
+                        )
+                    )
                 if not element.equal_total:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Total does not match', line_a, line_b, element.total, element.pair.total, tab=TAB_TAX_INVOICE))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Total does not match",
+                            line_a,
+                            line_b,
+                            element.total,
+                            element.pair.total,
+                            tab=TAB_TAX_INVOICE,
+                        )
+                    )
                 if not element.equal_comments:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Comments does not match', line_a, line_b, element.comments, element.pair.comments, tab=TAB_TAX_INVOICE))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Comments does not match",
+                            line_a,
+                            line_b,
+                            element.comments,
+                            element.pair.comments,
+                            tab=TAB_TAX_INVOICE,
+                        )
+                    )
         else:
             if write_errors:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', line_a, '', value_a=description, tab=TAB_TAX_INVOICE))
+                errors.append(
+                    new_error(
+                        invoice.filename,
+                        invoice.pair.filename,
+                        "No corresponding row in commission file",
+                        line_a,
+                        "",
+                        value_a=description,
+                        tab=TAB_TAX_INVOICE,
+                    )
+                )
             else:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', '', line_a, value_b=description, tab=TAB_TAX_INVOICE))
+                errors.append(
+                    new_error(
+                        invoice.filename,
+                        invoice.pair.filename,
+                        "No corresponding row in commission file",
+                        "",
+                        line_a,
+                        value_b=description,
+                        tab=TAB_TAX_INVOICE,
+                    )
+                )
 
         return errors
 
 
 class RCTIDataRow(InvoiceRow):
-
     def __init__(self, description, amount, gst, total, document_row=None):
         InvoiceRow.__init__(self)
-        # print(f"""description: {description}, amount:{amount}, gst:{gst}, total: {total}, document_row: {document_row}""")
 
-        self.description = ' '.join(description.strip().split())
-        self.amount = float(u.sanitize(str(amount))) if amount != '' and amount != ' ' and isinstance(amount, int) else 0
+        self.description = " ".join(description.strip().split())
+        self.amount = (
+            float(u.sanitize(str(amount))) if amount != "" and amount != " " and isinstance(amount, int) else 0
+        )
 
-        self.gst = float(gst) if gst != '' and gst != ' ' and isinstance(amount, int) else 0
-        self.total = float(total) if total != '' and gst != ' ' and isinstance(amount, int) else 0
+        self.gst = float(gst) if gst != "" and gst != " " and isinstance(amount, int) else 0
+        self.total = float(total) if total != "" and gst != " " and isinstance(amount, int) else 0
 
         self._pair = None
         self._margin = 0
@@ -1635,9 +2187,10 @@ class RCTIDataRow(InvoiceRow):
         if self.pair is None:
             return False
         return self.compare_numbers(self.total, self.pair.total, self.margin)
+
     # endregion
 
-    def _generate_key(self, salt=''):
+    def _generate_key(self, salt=""):
         sha = hashlib.sha256()
         sha.update(u.sanitize(self.description).encode(ENCODING))
         sha.update(str(salt).encode(ENCODING))
@@ -1663,9 +2216,11 @@ class RCTIDataRow(InvoiceRow):
         )
 
     @staticmethod
-    def write_row(worksheet, invoice, element, row, fmt_error, tab, side='left', ignore_last_two=False, write_errors=True):
+    def write_row(
+        worksheet, invoice, element, row, fmt_error, tab, side="left", ignore_last_two=False, write_errors=True
+    ):
         col = 0
-        if side == 'right':
+        if side == "right":
             col = 5
 
         worksheet.write(row, col, element.description)
@@ -1685,19 +2240,69 @@ class RCTIDataRow(InvoiceRow):
             line_b = element.pair.document_row
             if write_errors:
                 if not element.equal_amount:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Amount does not match', line_a, line_b, element.amount, element.pair.amount, tab=tab))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Amount does not match",
+                            line_a,
+                            line_b,
+                            element.amount,
+                            element.pair.amount,
+                            tab=tab,
+                        )
+                    )
                 if not element.equal_gst:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'GST does not match', line_a, line_b, element.gst, element.pair.gst, tab=tab))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "GST does not match",
+                            line_a,
+                            line_b,
+                            element.gst,
+                            element.pair.gst,
+                            tab=tab,
+                        )
+                    )
                 if not element.equal_total:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Total does not match', line_a, line_b, element.total, element.pair.total, tab=tab))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Total does not match",
+                            line_a,
+                            line_b,
+                            element.total,
+                            element.pair.total,
+                            tab=tab,
+                        )
+                    )
         else:
             if write_errors:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', line_a, '', value_a=description, tab=tab))
+                errors.append(
+                    new_error(
+                        invoice.filename,
+                        invoice.pair.filename,
+                        "No corresponding row in commission file",
+                        line_a,
+                        "",
+                        value_a=description,
+                        tab=tab,
+                    )
+                )
             else:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', '', line_a, value_b=description, tab=tab))
+                errors.append(
+                    new_error(
+                        invoice.filename,
+                        invoice.pair.filename,
+                        "No corresponding row in commission file",
+                        "",
+                        line_a,
+                        value_b=description,
+                        tab=tab,
+                    )
+                )
 
         return errors
 
@@ -1706,7 +2311,7 @@ def read_files_branch(dir_: str, files: list) -> dict:
     keys = {}
     counter = 1
     for file in files:
-        print(f'Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}', end='\r')
+        print(f"Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}", end="\r")
         if os.path.isdir(dir_ + file):
             continue
         try:
