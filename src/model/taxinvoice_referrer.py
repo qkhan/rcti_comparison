@@ -3,17 +3,23 @@ import hashlib
 
 from bs4 import BeautifulSoup
 
-from src.model.taxinvoice import (TaxInvoice, InvoiceRow, ENCODING, OUTPUT_DIR_REFERRER, new_error,
-                                  get_header_format, get_error_format)
+from src.model.taxinvoice import (
+    TaxInvoice,
+    InvoiceRow,
+    ENCODING,
+    OUTPUT_DIR_REFERRER,
+    new_error,
+    get_header_format,
+    get_error_format,
+)
 
 from src import utils as u
 from src.utils import bcolors
 
-HEADER_REFERRER = ['Commission Type', 'Client', 'Referrer Name', 'Amount Paid', 'GST Paid', 'Total Amount Paid']
+HEADER_REFERRER = ["Commission Type", "Client", "Referrer Name", "Amount Paid", "GST Paid", "Total Amount Paid"]
 
 
 class ReferrerTaxInvoice(TaxInvoice):
-
     def __init__(self, directory, filename):
         TaxInvoice.__init__(self, directory, filename)
         self.filetext = self.get_file_text()
@@ -26,12 +32,12 @@ class ReferrerTaxInvoice(TaxInvoice):
         self.parse()
 
     def get_file_text(self):
-        file = open(self.full_path, 'r')
+        file = open(self.full_path, "r")
         return file.read()
 
     # region Parsers
     def parse(self):
-        soup = BeautifulSoup(self.filetext, 'html.parser')
+        soup = BeautifulSoup(self.filetext, "html.parser")
 
         self._from = self.parse_from(soup)
         self.from_abn = self.parse_from_abn(soup)
@@ -68,12 +74,12 @@ class ReferrerTaxInvoice(TaxInvoice):
 
     def parse_bsb(self, soup: BeautifulSoup):
         parts_account = self._get_parts_account(soup)
-        bsb = parts_account[1].split(' - ')[0].strip()
+        bsb = parts_account[1].split(" - ")[0].strip()
         return bsb
 
     def parse_account(self, soup: BeautifulSoup):
         parts_account = self._get_parts_account(soup)
-        account = parts_account[2].split('/')[0].strip()
+        account = parts_account[2].split("/")[0].strip()
         return account
 
     def parse_final_total(self, soup: BeautifulSoup):
@@ -82,49 +88,52 @@ class ReferrerTaxInvoice(TaxInvoice):
         return final_total
 
     def parse_rows(self, soup: BeautifulSoup):
-        header = soup.find('tr')  # Find header
+        header = soup.find("tr")  # Find header
         header = header.extract()  # Remove header
-        header = header.find_all('th')
-        table_rows = soup.find_all('tr')
+        header = header.find_all("th")
+        table_rows = soup.find_all("tr")
         row_number = 0
         for tr in table_rows:
             row_number += 1
-            tds = tr.find_all('td')
+            tds = tr.find_all("td")
             if len(header) == 6:
-                row = ReferrerInvoiceRow(tds[0].text, tds[1].text, tds[2].text,
-                                         tds[3].text, tds[4].text, tds[5].text, row_number)
+                row = ReferrerInvoiceRow(
+                    tds[0].text, tds[1].text, tds[2].text, tds[3].text, tds[4].text, tds[5].text, row_number
+                )
                 self.__add_datarow(row)
             else:
-                row = ReferrerInvoiceRow(tds[0].text, tds[1].text, '',
-                                         tds[2].text, tds[3].text, tds[4].text, row_number)
+                row = ReferrerInvoiceRow(
+                    tds[0].text, tds[1].text, "", tds[2].text, tds[3].text, tds[4].text, row_number
+                )
                 self.__add_datarow(row)
 
     def _get_parts_info(self, soup: BeautifulSoup):
-        body = soup.find('body')
-        extracted_info = body.find('p').text
-        info = ' '.join(extracted_info.split())
-        parts_info = info.split(':')
+        body = soup.find("body")
+        extracted_info = body.find("p").text
+        info = " ".join(extracted_info.split())
+        parts_info = info.split(":")
         return parts_info
 
     def _get_parts_account(self, soup: BeautifulSoup):
-        body = soup.find('body')
-        extracted_account = body.find('p').find_next('p').text
-        account = ' '.join(extracted_account.split())
-        parts_account = account.split(':')
+        body = soup.find("body")
+        extracted_account = body.find("p").find_next("p").text
+        account = " ".join(extracted_account.split())
+        parts_account = account.split(":")
         return parts_account
+
     # endregion
 
     def __generate_key(self):
         sha = hashlib.sha256()
 
-        filename_parts = self.filename.split('_')
+        filename_parts = self.filename.split("_")
         filename_parts = filename_parts[:-5]  # Remove process ID and date stamp
 
         for index, part in enumerate(filename_parts):
             if part == "Referrer":
                 del filename_parts[index - 1]  # Remove year-month stamp
 
-        filename_forkey = ''.join(filename_parts)
+        filename_forkey = "".join(filename_parts)
         sha.update(filename_forkey.encode(ENCODING))
         return sha.hexdigest()
 
@@ -145,84 +154,125 @@ class ReferrerTaxInvoice(TaxInvoice):
         col_b = 8
 
         format_ = fmt_error if not self.equal_from else None
-        worksheet.write(row, col_a, 'From')
+        worksheet.write(row, col_a, "From")
         worksheet.write(row, col_a + 1, self._from, format_)
         row += 1
         format_ = fmt_error if not self.equal_from_abn else None
-        worksheet.write(row, col_a, 'From ABN')
+        worksheet.write(row, col_a, "From ABN")
         worksheet.write(row, col_a + 1, self.from_abn, format_)
         row += 1
         format_ = fmt_error if not self.equal_to else None
-        worksheet.write(row, col_a, 'To')
+        worksheet.write(row, col_a, "To")
         worksheet.write(row, col_a + 1, self.to, format_)
         row += 1
         format_ = fmt_error if not self.equal_to_abn else None
-        worksheet.write(row, col_a, 'To ABN')
+        worksheet.write(row, col_a, "To ABN")
         worksheet.write(row, col_a + 1, self.to_abn, format_)
         row += 1
         format_ = fmt_error if not self.equal_bsb else None
-        worksheet.write(row, col_a, 'BSB')
+        worksheet.write(row, col_a, "BSB")
         worksheet.write(row, col_a + 1, self.bsb, format_)
         row += 1
         format_ = fmt_error if not self.equal_account else None
-        worksheet.write(row, col_a, 'Account')
+        worksheet.write(row, col_a, "Account")
         worksheet.write(row, col_a + 1, self.account, format_)
         row += 1
         format_ = fmt_error if not self.equal_final_total else None
-        worksheet.write(row, col_a, 'Total')
+        worksheet.write(row, col_a, "Total")
         worksheet.write(row, col_a + 1, self.final_total, format_)
 
         if self.pair is not None:
             row = 0
             format_ = fmt_error if not self.pair.equal_from else None
-            worksheet.write(row, col_b, 'From')
+            worksheet.write(row, col_b, "From")
             worksheet.write(row, col_b + 1, self.pair._from, format_)
             row += 1
             format_ = fmt_error if not self.pair.equal_from_abn else None
-            worksheet.write(row, col_b, 'From ABN')
+            worksheet.write(row, col_b, "From ABN")
             worksheet.write(row, col_b + 1, self.pair.from_abn, format_)
             row += 1
             format_ = fmt_error if not self.pair.equal_to else None
-            worksheet.write(row, col_b, 'To')
+            worksheet.write(row, col_b, "To")
             worksheet.write(row, col_b + 1, self.pair.to, format_)
             row += 1
             format_ = fmt_error if not self.pair.equal_to_abn else None
-            worksheet.write(row, col_b, 'To ABN')
+            worksheet.write(row, col_b, "To ABN")
             worksheet.write(row, col_b + 1, self.pair.to_abn, format_)
             row += 1
             format_ = fmt_error if not self.pair.equal_bsb else None
-            worksheet.write(row, col_b, 'BSB')
+            worksheet.write(row, col_b, "BSB")
             worksheet.write(row, col_b + 1, self.pair.bsb, format_)
             row += 1
             format_ = fmt_error if not self.pair.equal_account else None
-            worksheet.write(row, col_b, 'Account')
+            worksheet.write(row, col_b, "Account")
             worksheet.write(row, col_b + 1, self.pair.account, format_)
             row += 1
             format_ = fmt_error if not self.pair.equal_final_total else None
-            worksheet.write(row, col_b, 'Total')
+            worksheet.write(row, col_b, "Total")
             worksheet.write(row, col_b + 1, self.pair.final_total, format_)
 
             if not self.equal_from:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'From does not match', '', '', self._from, self.pair._from))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename, self.pair.filename, "From does not match", "", "", self._from, self.pair._from
+                    )
+                )
             if not self.equal_from_abn:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'From ABN does not match', '', '', self.from_abn, self.pair.from_abn))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "From ABN does not match",
+                        "",
+                        "",
+                        self.from_abn,
+                        self.pair.from_abn,
+                    )
+                )
             if not self.equal_to:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'To does not match', '', '', self.to, self.pair.to))
+                self.summary_errors.append(
+                    new_error(self.filename, self.pair.filename, "To does not match", "", "", self.to, self.pair.to)
+                )
             if not self.equal_to_abn:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'To ABN does not match', '', '', self.to_abn, self.pair.to_abn))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "To ABN does not match",
+                        "",
+                        "",
+                        self.to_abn,
+                        self.pair.to_abn,
+                    )
+                )
             if not self.equal_bsb:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'BSB does not match', '', '', self.bsb, self.pair.bsb))
+                self.summary_errors.append(
+                    new_error(self.filename, self.pair.filename, "BSB does not match", "", "", self.bsb, self.pair.bsb)
+                )
             if not self.equal_account:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'Account does not match', '', '', self.account, self.pair.account))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "Account does not match",
+                        "",
+                        "",
+                        self.account,
+                        self.pair.account,
+                    )
+                )
             if not self.equal_final_total:
-                self.summary_errors.append(new_error(
-                    self.filename, self.pair.filename, 'Total does not match', '', '', self.final_total, self.pair.final_total))
+                self.summary_errors.append(
+                    new_error(
+                        self.filename,
+                        self.pair.filename,
+                        "Total does not match",
+                        "",
+                        "",
+                        self.final_total,
+                        self.pair.final_total,
+                    )
+                )
 
         row += 2
 
@@ -251,7 +301,8 @@ class ReferrerTaxInvoice(TaxInvoice):
                 pair_row.margin = margin
                 pair_row.pair = self_row
                 self.summary_errors += ReferrerInvoiceRow.write_row(
-                    worksheet, self, pair_row, row, fmt_error, 'right', write_errors=False)
+                    worksheet, self, pair_row, row, fmt_error, "right", write_errors=False
+                )
 
             self.summary_errors += ReferrerInvoiceRow.write_row(worksheet, self, self_row, row, fmt_error)
             row += 1
@@ -259,7 +310,8 @@ class ReferrerTaxInvoice(TaxInvoice):
         # Write unmatched records
         for key in keys_unmatched:
             self.summary_errors += ReferrerInvoiceRow.write_row(
-                worksheet, self, self.pair.datarows[key], row, fmt_error, 'right', write_errors=False)
+                worksheet, self, self.pair.datarows[key], row, fmt_error, "right", write_errors=False
+            )
             row += 1
 
         if len(self.summary_errors) > 0:
@@ -339,11 +391,11 @@ class ReferrerTaxInvoice(TaxInvoice):
         if self.pair is None:
             return False
         return self.compare_numbers(self.final_total, self.pair.final_total, self.margin)
+
     # endregion
 
 
 class ReferrerInvoiceRow(InvoiceRow):
-
     def __init__(self, commission_type, client, referrer, amount_paid, gst_paid, total, row_number):
         InvoiceRow.__init__(self)
         self._pair = None
@@ -429,9 +481,10 @@ class ReferrerInvoiceRow(InvoiceRow):
         if self.pair is None:
             return False
         return self.compare_numbers(self.total, self.pair.total, self.margin)
+
     # endregion Properties
 
-    def _generate_key(self, salt=''):
+    def _generate_key(self, salt=""):
         sha = hashlib.sha256()
         sha.update(u.sanitize(self.commission_type).encode(ENCODING))
         sha.update(u.sanitize(self.client).encode(ENCODING))
@@ -439,7 +492,7 @@ class ReferrerInvoiceRow(InvoiceRow):
         sha.update(str(salt).encode(ENCODING))
         return sha.hexdigest()
 
-    def __generate_key_full(self, salt=''):
+    def __generate_key_full(self, salt=""):
         sha = hashlib.sha256()
         sha.update(self.commission_type.encode(ENCODING))
         sha.update(self.client.encode(ENCODING))
@@ -464,9 +517,9 @@ class ReferrerInvoiceRow(InvoiceRow):
         )
 
     @staticmethod
-    def write_row(worksheet, invoice, element, row, fmt_error, side='left', write_errors=True):
+    def write_row(worksheet, invoice, element, row, fmt_error, side="left", write_errors=True):
         col = 0
-        if side == 'right':
+        if side == "right":
             col = 8
 
         worksheet.write(row, col, element.commission_type)
@@ -488,22 +541,57 @@ class ReferrerInvoiceRow(InvoiceRow):
             line_b = element.pair.row_number
             if write_errors:
                 if not element.equal_amount_paid:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Amount Paid does not match', line_a, line_b, element.amount_paid, element.pair.amount_paid))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Amount Paid does not match",
+                            line_a,
+                            line_b,
+                            element.amount_paid,
+                            element.pair.amount_paid,
+                        )
+                    )
 
                 if not element.equal_gst_paid:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'GST Paid does not match', line_a, line_b, element.gst_paid, element.pair.gst_paid))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "GST Paid does not match",
+                            line_a,
+                            line_b,
+                            element.gst_paid,
+                            element.pair.gst_paid,
+                        )
+                    )
 
                 if not element.equal_total:
-                    errors.append(new_error(
-                        invoice.filename, invoice.pair.filename, 'Total does not match', line_a, line_b, element.total, element.pair.total))
+                    errors.append(
+                        new_error(
+                            invoice.filename,
+                            invoice.pair.filename,
+                            "Total does not match",
+                            line_a,
+                            line_b,
+                            element.total,
+                            element.pair.total,
+                        )
+                    )
 
         else:
             if write_errors:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', line_a, ''))
+                errors.append(
+                    new_error(
+                        invoice.filename, invoice.pair.filename, "No corresponding row in commission file", line_a, ""
+                    )
+                )
             else:
-                errors.append(new_error(invoice.filename, invoice.pair.filename, 'No corresponding row in commission file', '', line_a))
+                errors.append(
+                    new_error(
+                        invoice.filename, invoice.pair.filename, "No corresponding row in commission file", "", line_a
+                    )
+                )
         return errors
 
 
@@ -511,7 +599,7 @@ def read_files_referrer(dir_: str, files: list) -> dict:
     keys = {}
     counter = 1
     for file in files:
-        print(f'Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}', end='\r')
+        print(f"Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}", end="\r")
         if os.path.isdir(dir_ + file):
             continue
         try:
