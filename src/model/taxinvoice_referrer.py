@@ -596,7 +596,7 @@ class ReferrerInvoiceRow(InvoiceRow):
 
 
 def read_files_referrer(dir_: str, files: list) -> dict:
-    keys = {}
+    records = {}
     counter = 1
     for file in files:
         print(f"Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}", end="\r")
@@ -604,10 +604,10 @@ def read_files_referrer(dir_: str, files: list) -> dict:
             continue
         try:
             ti = ReferrerTaxInvoice(dir_, file)
-            keys[ti.key] = ti
+            records[ti.key] = ti
         except IndexError:
             # handle exception when there is a column missing in the file.
             pass
         counter += 1
     print()
-    return keys
+    return records
