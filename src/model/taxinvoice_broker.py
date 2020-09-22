@@ -578,6 +578,7 @@ def read_files_broker(dir_: str, files: list) -> dict:
         if os.path.isdir(dir_ + file):
             continue
         try:
+            print(file)
             ti = BrokerTaxInvoice(dir_, file)
             keys[ti.key] = ti
         except IndexError:
