@@ -2113,12 +2113,11 @@ class RCTIDataRow(InvoiceRow):
         InvoiceRow.__init__(self)
 
         self.description = " ".join(description.strip().split())
-        self.amount = (
-            float(u.sanitize(str(amount))) if amount != "" and amount != " " and isinstance(amount, int) else 0
-        )
 
-        self.gst = float(gst) if gst != "" and gst != " " and isinstance(amount, int) else 0
-        self.total = float(total) if total != "" and gst != " " and isinstance(amount, int) else 0
+        self.amount = u.money_to_float(str(amount)) if amount != "" and amount != " " else 0
+
+        self.gst = u.money_to_float(str(gst)) if gst != "" and gst != " " else 0
+        self.total = u.money_to_float(str(total)) if total != "" and gst != " " else 0
 
         self._pair = None
         self._margin = 0
@@ -2308,18 +2307,19 @@ class RCTIDataRow(InvoiceRow):
 
 
 def read_files_branch(dir_: str, files: list) -> dict:
-    keys = {}
+    records = {}
     counter = 1
+    print(len(files))
     for file in files:
         print(f"Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}", end="\r")
         if os.path.isdir(dir_ + file):
             continue
         try:
             ti = BranchTaxInvoice(dir_, file)
-            keys[ti.key] = ti
+            records[ti.key] = ti
         except IndexError:
             # handle exception when there is a column missing in the file.
             pass
         counter += 1
     print()
-    return keys
+    return records
