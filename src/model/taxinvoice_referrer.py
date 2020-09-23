@@ -598,6 +598,7 @@ class ReferrerInvoiceRow(InvoiceRow):
 def read_files_referrer(dir_: str, files: list) -> dict:
     records = {}
     counter = 1
+    errors = []
     for file in files:
         print(f"Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}", end="\r")
         if os.path.isdir(dir_ + file):
@@ -606,8 +607,8 @@ def read_files_referrer(dir_: str, files: list) -> dict:
             ti = ReferrerTaxInvoice(dir_, file)
             records[ti.key] = ti
         except IndexError:
-            # handle exception when there is a column missing in the file.
-            pass
+            # handle exception when there is a column missing or an issue with the file.
+            errors.append(new_error(f"{dir_}/{file}", "", "ERROR PARSING FILE!!!"))
         counter += 1
     print()
-    return records
+    return records, errors
