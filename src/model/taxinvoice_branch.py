@@ -133,39 +133,42 @@ class BranchTaxInvoice(TaxInvoice):
 
     def parse_tab_vbi_data(self, tab):
         try:
-            df = pandas.read_excel(self.full_path, sheet_name=tab)
-        except XLRDError:
-            # Infynity tab has a different name from LK tab.
-            df = pandas.read_excel(self.full_path, sheet_name="VBI Data")
-        df = df.dropna(how="all")
-        df = df.replace(numpy.nan, "", regex=True)
-        df = df.replace("--", " ", regex=True)
-        if df.columns[0] != "Broker":
-            df = df.rename(columns=df.iloc[0]).drop(df.index[0])
+            try:
+                df = pandas.read_excel(self.full_path, sheet_name=tab)
+            except XLRDError:
+                # Infynity tab has a different name from LK tab.
+                df = pandas.read_excel(self.full_path, sheet_name="VBI Data")
+            df = df.dropna(how="all")
+            df = df.replace(numpy.nan, "", regex=True)
+            df = df.replace("--", " ", regex=True)
+            if df.columns[0] != "Broker":
+                df = df.rename(columns=df.iloc[0]).drop(df.index[0])
 
-        for index, row in df.iterrows():
-            vbidatarow = VBIDataRow(
-                row["Broker"],
-                row["Lender"],
-                row["Client"],
-                row["Ref #"],
-                # row['Referrer'],
-                float(row["Settled Loan"]),
-                row["Settlement Date"],
-                float(row["Commission"]),
-                float(row["GST"]),
-                float(row["Fee/Commission Split"]),
-                float(row["Fees GST"]),
-                float(row["Remitted/Net"]),
-                float(row["Paid To Broker"]),
-                float(row["Paid To Referrer"]),
-                float(row["Retained"]),
-                index,
-            )
-            if tab == TAB_VBI_DATA:
-                self.__add_datarow(self.vbi_data_rows, self.vbi_data_rows_count, vbidatarow)
-            elif tab == TAB_UPFRONT_DATA:
-                self.__add_datarow(self.upfront_data_rows, self.upfront_data_rows_count, vbidatarow)
+            for index, row in df.iterrows():
+                vbidatarow = VBIDataRow(
+                    row["Broker"],
+                    row["Lender"],
+                    row["Client"],
+                    row["Ref #"],
+                    # row['Referrer'],
+                    float(row["Settled Loan"]),
+                    row["Settlement Date"],
+                    float(row["Commission"]),
+                    float(row["GST"]),
+                    float(row["Fee/Commission Split"]),
+                    float(row["Fees GST"]),
+                    float(row["Remitted/Net"]),
+                    float(row["Paid To Broker"]),
+                    float(row["Paid To Referrer"]),
+                    float(row["Retained"]),
+                    index,
+                )
+                if tab == TAB_VBI_DATA:
+                    self.__add_datarow(self.vbi_data_rows, self.vbi_data_rows_count, vbidatarow)
+                elif tab == TAB_UPFRONT_DATA:
+                    self.__add_datarow(self.upfront_data_rows, self.upfront_data_rows_count, vbidatarow)
+        except XLRDError:
+            pass
 
     def parse_tab_trail_data(self):
         df = pandas.read_excel(self.full_path, sheet_name=TAB_TRAIL_DATA)
@@ -253,7 +256,7 @@ class BranchTaxInvoice(TaxInvoice):
         self.rcti_to = str(df.iloc[3][1]).strip()
         self.rcti_to_abn = str(df.iloc[4][1]).strip()
 
-        df = df[7 : len(df)]
+        df = df[7: len(df)]
 
         for index, row in df.iterrows():
             rctirow = RCTIDataRow(row[0], row[1], row[2], row[3], index)
@@ -287,7 +290,7 @@ class BranchTaxInvoice(TaxInvoice):
         current_df = 0
         index = 0
         for i, row in df.iterrows():
-            if row[0].lower() == "carried forward balance":
+            if row[0].lower() == "carried forward balance" or row[0].lower() == "adjustments*":
                 current_df = 1
                 df1_start = index
             elif row[0].lower().startswith("payment to brokers from"):
@@ -2310,6 +2313,7 @@ class RCTIDataRow(InvoiceRow):
 def read_files_branch(dir_: str, files: list) -> dict:
     records = {}
     counter = 1
+    errors = []
     for file in files:
         print(f"Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}", end="\r")
         if os.path.isdir(dir_ + file):
@@ -2318,8 +2322,8 @@ def read_files_branch(dir_: str, files: list) -> dict:
             ti = BranchTaxInvoice(dir_, file)
             records[ti.key] = ti
         except IndexError:
-            # handle exception when there is a column missing in the file.
-            pass
+            # handle exception when there is a column missing or an issue with the file.
+            errors.append(new_error(f"{dir_}/{file}", "", "ERROR PARSING FILE!!!"))
         counter += 1
     print()
-    return records
+    return records, errors
