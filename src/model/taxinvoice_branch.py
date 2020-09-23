@@ -134,37 +134,38 @@ class BranchTaxInvoice(TaxInvoice):
     def parse_tab_vbi_data(self, tab):
         try:
             df = pandas.read_excel(self.full_path, sheet_name=tab)
-            df = df.dropna(how="all")
-            df = df.replace(numpy.nan, "", regex=True)
-            df = df.replace("--", " ", regex=True)
-            if df.columns[0] != "Broker":
-                df = df.rename(columns=df.iloc[0]).drop(df.index[0])
-
-            for index, row in df.iterrows():
-                vbidatarow = VBIDataRow(
-                    row["Broker"],
-                    row["Lender"],
-                    row["Client"],
-                    row["Ref #"],
-                    # row['Referrer'],
-                    float(row["Settled Loan"]),
-                    row["Settlement Date"],
-                    float(row["Commission"]),
-                    float(row["GST"]),
-                    float(row["Fee/Commission Split"]),
-                    float(row["Fees GST"]),
-                    float(row["Remitted/Net"]),
-                    float(row["Paid To Broker"]),
-                    float(row["Paid To Referrer"]),
-                    float(row["Retained"]),
-                    index,
-                )
-                if tab == TAB_VBI_DATA:
-                    self.__add_datarow(self.vbi_data_rows, self.vbi_data_rows_count, vbidatarow)
-                elif tab == TAB_UPFRONT_DATA:
-                    self.__add_datarow(self.upfront_data_rows, self.upfront_data_rows_count, vbidatarow)
         except XLRDError:
-            pass
+            # Infynity tab has a different name from LK tab.
+            df = pandas.read_excel(self.full_path, sheet_name="VBI Data")
+        df = df.dropna(how="all")
+        df = df.replace(numpy.nan, "", regex=True)
+        df = df.replace("--", " ", regex=True)
+        if df.columns[0] != "Broker":
+            df = df.rename(columns=df.iloc[0]).drop(df.index[0])
+
+        for index, row in df.iterrows():
+            vbidatarow = VBIDataRow(
+                row["Broker"],
+                row["Lender"],
+                row["Client"],
+                row["Ref #"],
+                # row['Referrer'],
+                float(row["Settled Loan"]),
+                row["Settlement Date"],
+                float(row["Commission"]),
+                float(row["GST"]),
+                float(row["Fee/Commission Split"]),
+                float(row["Fees GST"]),
+                float(row["Remitted/Net"]),
+                float(row["Paid To Broker"]),
+                float(row["Paid To Referrer"]),
+                float(row["Retained"]),
+                index,
+            )
+            if tab == TAB_VBI_DATA:
+                self.__add_datarow(self.vbi_data_rows, self.vbi_data_rows_count, vbidatarow)
+            elif tab == TAB_UPFRONT_DATA:
+                self.__add_datarow(self.upfront_data_rows, self.upfront_data_rows_count, vbidatarow)
 
     def parse_tab_trail_data(self):
         df = pandas.read_excel(self.full_path, sheet_name=TAB_TRAIL_DATA)
@@ -937,7 +938,7 @@ class BranchTaxInvoice(TaxInvoice):
             self_row = self.vbi_data_rows[key_full]
             self_row.margin = margin
 
-            pair_row = self.pair.vbi_data_rows.get(key, None)
+            pair_row = self.pair.vbi_data_rows.get(key_full, None)
             self_row.pair = pair_row
 
             if pair_row is not None:
@@ -2309,7 +2310,6 @@ class RCTIDataRow(InvoiceRow):
 def read_files_branch(dir_: str, files: list) -> dict:
     records = {}
     counter = 1
-    print(len(files))
     for file in files:
         print(f"Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}", end="\r")
         if os.path.isdir(dir_ + file):
