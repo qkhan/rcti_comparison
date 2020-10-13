@@ -603,12 +603,12 @@ def read_files_referrer(dir_: str, files: list) -> dict:
         print(f"Parsing {counter} of {len(files)} files from {bcolors.BLUE}{dir_}{bcolors.ENDC}", end="\r")
         if os.path.isdir(dir_ + file):
             continue
-        try:
-            ti = ReferrerTaxInvoice(dir_, file)
-            records[ti.key] = ti
-        except IndexError:
-            # handle exception when there is a column missing or an issue with the file.
-            errors.append(new_error(f"{dir_}/{file}", "", "ERROR PARSING FILE!!!"))
+        # try:
+        ti = ReferrerTaxInvoice(dir_, file)
+        records[ti.key] = ti
+        # except IndexError:
+        #     # handle exception when there is a column missing or an issue with the file.
+        #     errors.append(new_error(f"{dir_}/{file}", "", "ERROR PARSING FILE!!!"))
         counter += 1
     print()
     return records, errors

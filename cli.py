@@ -192,7 +192,6 @@ def run_comparison(errors, files_a, files_b, margin, summary_filname, summary_ti
     create_dirs()
 
     summary_errors = [] + errors
-    print(summary_errors)
 
     # Set each invoice pair
     for key in files_a.keys():
