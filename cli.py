@@ -274,6 +274,7 @@ if __name__ == "__main__":
     infynity_process_id = sys.argv[3]
 
     PATH = "/Users/petrosschilling/dev/rcti_comparison/inputs"
+    PATH = "/Users/qaisar/Desktop/rcti_comparison_scripts/commission-comparer-infynity/inputs"
     PATH_LK = f"{PATH}/loankit"
     PATH_INY = f"{PATH}/infynity"
 
@@ -304,6 +305,7 @@ if __name__ == "__main__":
 
     rcti_compare_referrer(loose, referrer_loankit_dir, referrer_infynity_dir)
     rcti_compare_broker(loose, broker_loankit_dir, broker_infynity_dir)
+    #print(f"""{branch_loankit_dir}|{branch_infynity_dir}""")
     rcti_compare_branch(loose, branch_loankit_dir, branch_infynity_dir)
     rcti_compare_executive_summary(loose, loankit_es_filepath, infynity_es_filepath)
     rcti_compare_aba(loankit_aba_filepath, infynity_aba_filepath)

@@ -171,6 +171,7 @@ class BranchTaxInvoice(TaxInvoice):
             pass
 
     def parse_tab_trail_data(self):
+        print(self.full_path)
         df = pandas.read_excel(self.full_path, sheet_name=TAB_TRAIL_DATA)
         df = df.dropna(how="all")
         df = df.replace(numpy.nan, "", regex=True)
