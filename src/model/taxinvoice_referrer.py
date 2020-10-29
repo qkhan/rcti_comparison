@@ -33,6 +33,7 @@ class ReferrerTaxInvoice(TaxInvoice):
 
     def get_file_text(self):
         file = open(self.full_path, "r")
+        print(file)
         return file.read()
 
     # region Parsers
